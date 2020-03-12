@@ -28,7 +28,7 @@ router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
     .catch(err => {
       res.status(500).json({ error: "server error" });
     });
-}); //find bug============================================================
+});
 
 router.get("/", (req, res) => {
   // do your magic!
@@ -80,24 +80,23 @@ router.delete("/:id", validateUserId, (req, res) => {
 
 router.put("/:id", validateUserId, (req, res) => {
   // do your magic!
-  const id = req.params.id;
+  const id = req.params.id; // set id from request params to variable id
   console.log(req, "req from put");
-  UserDb.update(id, { name: req.body.name })
+  UserDb.update(id, { name: req.body.name }) //pass in id from request and the new object
     .then(response => {
       console.log(response, "first res in put promise");
-      response === 1
-        ? UserDb.getById(id).then(response => {
-            console.log(
-              response,
-              "res inside getuserid promise nested in put promise"
-            );
-            res
-              .status(201)
-              .json(response)
-              .catch(error => {
-                res.status(404).json({ message: "could not retrieve user id" });
-              });
-          })
+      response === 1 //update function returns count of 1 in response if successful
+        ? UserDb.getById(id)
+            .then(response => {
+              console.log(
+                response,
+                "res inside getuserid promise nested in put promise"
+              );
+              res.status(201).json(response);
+            })
+            .catch(error => {
+              res.status(404).json({ message: "could not retrieve user id" });
+            })
         : res.status(500).json({ message: "server error" });
     })
     .catch(error => {
@@ -109,12 +108,12 @@ router.put("/:id", validateUserId, (req, res) => {
 
 function validateUserId(req, res, next) {
   // do your magic!
-  UserDb.getById(req.params.id)
+  UserDb.getById(req.params.id) // get id in params from request
     .then(response2 => {
       console.log(response2, "res2");
-      response2
-        ? (req.user = response2)
-        : res.status(400).json({ error: "invalid id" });
+      response2 // get the request associated with the targeted id , if its true
+        ? (req.user = response2) // set req.user to the object in request
+        : res.status(400).json({ error: "invalid id" }); //if there is no user object return error
       console.log(req.user, "req-user");
     })
     .catch(error => ({ error: "something went wrong" }));
@@ -124,11 +123,11 @@ function validateUserId(req, res, next) {
 
 function validateUser(req, res, next) {
   // do your magic!
-  !req.body
-    ? res.status(400).json({ message: "missing user data" })
-    : !req.body.name
-    ? res.status(400).json({ message: "missing name field" })
-    : next();
+  !req.body //if no request data
+    ? res.status(400).json({ message: "missing user data" }) //return error
+    : !req.body.name //if no name field exists or if text isnt entered into field
+    ? res.status(400).json({ message: "missing name field" }) // return error
+    : next(); // move on to next middleware or continue crud
 }
 
 function validatePost(req, res, next) {
